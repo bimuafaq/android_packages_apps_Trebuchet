@@ -52,6 +52,13 @@
         android:defaultValue="@bool/allow_rotation"
         android:persistent="true" />
 
+    <SwitchPreference
+        android:key="pref_allow_wallpaper_zoom"
+        android:title="@string/enable_wallpaper_zoom_title"
+        android:summary="@string/enable_wallpaper_zoom_summary"
+        android:defaultValue="true"
+        android:persistent="true" />
+
     <Preference
         android:key="pref_trust_apps"
         android:title="@string/trust_apps_manager_name" />
