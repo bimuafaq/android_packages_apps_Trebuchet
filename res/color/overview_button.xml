@@ -5,7 +5,7 @@
         android:color="?attr/workspaceTextColor"
         android:state_enabled="true" />
     <item
-        android:alpha="?android:disabledAlpha"
+        android:alpha="1"
         android:color="?attr/workspaceTextColor"
         android:state_enabled="false" />
 </selector>
