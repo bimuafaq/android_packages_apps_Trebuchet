@@ -175,7 +175,7 @@ public final class FeatureFlags {
             "Uses a separate recents activity instead of using the integrated recents+Launcher UI");
 
     public static final BooleanFlag USER_EVENT_DISPATCHER = new DeviceFlag(
-            "USER_EVENT_DISPATCHER", true, "User event dispatcher collects logs.");
+            "USER_EVENT_DISPATCHER", false, "User event dispatcher collects logs.");
 
     public static final BooleanFlag ENABLE_MINIMAL_DEVICE = new DeviceFlag(
             "ENABLE_MINIMAL_DEVICE", false,
