@@ -16,6 +16,10 @@
 
 <resources>
 
+    <!-- Extra bottom margin for overview TaskViews -->
+    <dimen name="overview_task_extra_top_margin">75dp</dimen>
+    <dimen name="overview_task_extra_bottom_margin">30dp</dimen>
+
     <dimen name="task_thumbnail_top_margin">24dp</dimen>
     <dimen name="task_thumbnail_half_top_margin">12dp</dimen>
     <dimen name="task_thumbnail_icon_size">48dp</dimen>
@@ -62,7 +66,7 @@
     <dimen name="task_card_menu_shadow_height">0dp</dimen>
     <dimen name="task_card_menu_horizontal_padding">0dp</dimen>
     <dimen name="portrait_task_card_horz_space">136dp</dimen>
-    <dimen name="portrait_task_card_horz_space_big_overview">126dp</dimen>
+    <dimen name="portrait_task_card_horz_space_big_overview">132dp</dimen>
     <dimen name="portrait_modal_task_card_horz_space">60dp</dimen>
     <dimen name="landscape_task_card_horz_space">200dp</dimen>
     <dimen name="multi_window_task_card_horz_space">100dp</dimen>
