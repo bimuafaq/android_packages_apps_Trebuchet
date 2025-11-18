@@ -531,6 +531,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
     protected void onWindowVisibilityChanged(int visibility) {
         super.onWindowVisibilityChanged(visibility);
         updateTaskStackListenerState();
+        if (visibility == VISIBLE && mActionsView != null) {
+            mActionsView.updateMemInfo();
+        }
     }
 
     @Override
@@ -545,7 +548,7 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
 
     public void init(OverviewActionsView actionsView) {
         mActionsView = actionsView;
-        mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, getTaskViewCount() == 0);
+        mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, false);
         mClearAllButton = (Button) mActionsView.findViewById(R.id.clear_all);
         mClearAllButton.setOnClickListener(this::dismissAllTasks);
     }
@@ -594,7 +597,7 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
             TaskView taskView = (TaskView) child;
             mHasVisibleTaskData.delete(taskView.getTask().key.id);
             mTaskViewPool.recycle(taskView);
-            mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, getTaskViewCount() == 0);
+            mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, false);
         }
         updateTaskStartIndex(child);
     }
@@ -1527,6 +1530,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
                     // Update the layout synchronously so that the position of next view is
                     // immediately available.
                     onLayout(false /*  changed */, getLeft(), getTop(), getRight(), getBottom());
+                    if (mActionsView != null) {
+                        mActionsView.updateMemInfo();
+                    }
                 }
                 resetTaskVisuals();
                 mPendingAnimation = null;
@@ -1553,6 +1559,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
                 ActivityManagerWrapper.getInstance().removeAllRecentTasks();
                 removeTasksViewsAndClearAllButton();
                 startHome();
+                if (mActionsView != null) {
+                    mActionsView.updateMemInfo();
+                }
             }
             mPendingAnimation = null;
         });
