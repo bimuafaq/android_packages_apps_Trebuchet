@@ -24,7 +24,7 @@
     <dimen name="task_thumbnail_half_top_margin">12dp</dimen>
     <dimen name="task_thumbnail_icon_size">48dp</dimen>
     <!-- For screens without rounded corners -->
-    <dimen name="task_corner_radius_small">2dp</dimen>
+    <dimen name="task_corner_radius">16dp</dimen>
 
     <!-- Overrideable in overlay that provides the Overview Actions. -->
     <dimen name="overview_actions_height">132dp</dimen>
