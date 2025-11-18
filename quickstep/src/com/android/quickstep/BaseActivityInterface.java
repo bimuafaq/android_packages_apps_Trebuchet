@@ -229,8 +229,15 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         float paddingVert = showLargeTaskSize
                 ? 0 : res.getDimension(R.dimen.task_card_vert_space);
 
-        calculateTaskSizeInternal(context, dp, extraVerticalSpace, paddingHorz, paddingVert,
-                res.getDimension(R.dimen.task_thumbnail_top_margin), outRect);
+        float extraTopMargin = res.getDimension(R.dimen.overview_task_extra_top_margin);
+        float extraBottomMargin = res.getDimension(R.dimen.overview_task_extra_bottom_margin);
+        
+        calculateTaskSizeInternal(context, dp, 
+                extraVerticalSpace + extraBottomMargin,
+                paddingHorz, 
+                paddingVert,
+                res.getDimension(R.dimen.task_thumbnail_top_margin) + extraTopMargin,
+                outRect);
     }
 
     private void calculateTaskSizeInternal(Context context, DeviceProfile dp,
@@ -272,16 +279,28 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
      * Calculates the modal taskView size for the provided device configuration
      */
     public final void calculateModalTaskSize(Context context, DeviceProfile dp, Rect outRect) {
-        float paddingHorz = context.getResources().getDimension(dp.isMultiWindowMode
+
+        Resources res = context.getResources();
+
+        float paddingHorz = res.getDimension(dp.isMultiWindowMode
                 ? R.dimen.multi_window_task_card_horz_space
                 : dp.isVerticalBarLayout()
                         ? R.dimen.landscape_task_card_horz_space
                         : R.dimen.portrait_modal_task_card_horz_space);
         float extraVerticalSpace = getOverviewActionsHeight(context);
         float paddingVert = 0;
-        float topIconMargin = 0;
-        calculateTaskSizeInternal(context, dp, extraVerticalSpace, paddingHorz, paddingVert,
-                topIconMargin, outRect);
+
+        float extraTopMargin = res.getDimension(R.dimen.overview_task_extra_top_margin);
+        float extraBottomMargin = res.getDimension(R.dimen.overview_task_extra_bottom_margin);
+
+        float topIconMargin = extraTopMargin;
+
+        calculateTaskSizeInternal(context, dp, 
+                extraVerticalSpace + extraBottomMargin, 
+                paddingHorz, 
+                paddingVert,
+                topIconMargin, 
+                outRect);
     }
 
     /** Gets the space that the overview actions will take, including margins. */
@@ -419,3 +438,4 @@ public abstract class BaseActivityInterface<STATE_TYPE extends BaseState<STATE_T
         return ENABLE_OVERVIEW_ACTIONS.get() && removeShelfFromOverview(context);
     }
 }
+

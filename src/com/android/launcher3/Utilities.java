@@ -123,6 +123,8 @@ public final class Utilities {
 
     public static final String SLEEP_GESTURE = "pref_sleep_gesture";
 
+    public static final String KEY_SHOW_MEMINFO = "pref_show_meminfo";
+
     /**
      * Set on a motion event dispatched from the nav bar. See {@link MotionEvent#setEdgeFlags(int)}.
      */
@@ -707,5 +709,9 @@ public final class Utilities {
 
     public static boolean useSleepGesture(Context context) {
         return getPrefs(context).getBoolean(SLEEP_GESTURE, true);
+    }
+    
+    public static boolean isShowMemInfo(Context context) {
+        return getPrefs(context).getBoolean(KEY_SHOW_MEMINFO, true);
     }
 }

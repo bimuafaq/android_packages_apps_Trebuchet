@@ -67,6 +67,13 @@
         android:defaultValue="true"
         android:persistent="true" />
 
+   <SwitchPreference
+        android:key="pref_show_meminfo"
+        android:title="@string/show_meminfo_title"
+        android:summary="@string/show_meminfo_summary"
+        android:defaultValue="true"
+        android:persistent="true" />
+
     <Preference
         android:key="pref_trust_apps"
         android:title="@string/trust_apps_manager_name" />

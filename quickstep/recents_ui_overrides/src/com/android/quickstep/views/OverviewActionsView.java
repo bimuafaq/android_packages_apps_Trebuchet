@@ -93,6 +93,8 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     protected int mDisabledFlags;
 
     protected T mCallbacks;
+    
+    private MemInfoView mMemInfoView;
 
     public OverviewActionsView(Context context) {
         this(context, null);
@@ -118,6 +120,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
             share.setVisibility(VISIBLE);
             findViewById(R.id.share_space).setVisibility(VISIBLE);
         }
+        mMemInfoView = findViewById(R.id.meminfo);
     }
 
     /**
@@ -129,6 +132,12 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         mCallbacks = callbacks;
     }
 
+    public void updateMemInfo() {
+        if (mMemInfoView != null) {
+            mMemInfoView.updateMemInfo();
+        }
+    }
+    
     @Override
     public void onClick(View view) {
         if (mCallbacks == null) {
@@ -219,5 +228,14 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         LayoutParams params = (LayoutParams) getLayoutParams();
         params.setMargins(
                 params.leftMargin, params.topMargin, params.rightMargin, bottomMargin);
+    }
+    
+    @Override
+    public void setAlpha(float alpha) {
+        if (alpha > 0f) {
+            super.setAlpha(1.0f);
+        } else {
+            super.setAlpha(0f);
+        }
     }
 }
