@@ -24,6 +24,7 @@ import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 
 import java.lang.Runnable;
 import java.math.BigDecimal;
@@ -56,6 +57,16 @@ public class MemInfoView extends TextView {
     }
 
     public void updateMemInfo() {
+        if (!Utilities.isShowMemInfo(getContext())) {
+            mHandler.removeCallbacks(mWorker);
+            setVisibility(GONE);
+            return;
+        }
+
+        if (getVisibility() != VISIBLE) {
+            setVisibility(VISIBLE);
+        }
+
         mHandler.post(mWorker);
     }
 
@@ -86,6 +97,10 @@ public class MemInfoView extends TextView {
     private class MemInfoWorker implements Runnable {
         @Override
         public void run() {
+            if (!Utilities.isShowMemInfo(getContext())) {
+                return;
+            }
+
             ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
             mActivityManager.getMemoryInfo(memInfo);
             long availMemMiB = memInfo.availMem / (1024 * 1024);
