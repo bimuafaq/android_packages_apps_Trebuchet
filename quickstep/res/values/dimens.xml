@@ -20,9 +20,9 @@
     <dimen name="overview_task_extra_top_margin">75dp</dimen>
     <dimen name="overview_task_extra_bottom_margin">30dp</dimen>
 
-    <dimen name="task_thumbnail_top_margin">24dp</dimen>
+    <dimen name="task_thumbnail_top_margin">56dp</dimen>
     <dimen name="task_thumbnail_half_top_margin">12dp</dimen>
-    <dimen name="task_thumbnail_icon_size">48dp</dimen>
+    <dimen name="task_thumbnail_icon_size">38dp</dimen>
     <!-- For screens without rounded corners -->
     <dimen name="task_corner_radius">16dp</dimen>
 
