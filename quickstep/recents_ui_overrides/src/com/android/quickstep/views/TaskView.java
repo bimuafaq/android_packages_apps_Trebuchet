@@ -16,6 +16,9 @@
 
 package com.android.quickstep.views;
 
+import static android.view.View.VISIBLE;
+import static android.view.View.GONE;
+import static android.view.View.INVISIBLE;
 import static android.view.Gravity.BOTTOM;
 import static android.view.Gravity.CENTER_HORIZONTAL;
 import static android.view.Gravity.CENTER_VERTICAL;
@@ -64,6 +67,7 @@ import android.view.ViewOutlineProvider;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import com.android.launcher3.BaseDraggingActivity;
 import com.android.launcher3.DeviceProfile;
@@ -225,6 +229,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
     private Task mTask;
     private TaskThumbnailView mSnapshotView;
     private TaskMenuView mMenuView;
+    private TextView mTaskName;
     private IconView mIconView;
     private final DigitalWellBeingToast mDigitalWellBeingToast;
     private float mCurveScale;
@@ -321,6 +326,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         super.onFinishInflate();
         mSnapshotView = findViewById(R.id.snapshot);
         mIconView = findViewById(R.id.icon);
+        mTaskName = findViewById(R.id.task_name);
         mIconTouchDelegate = new TransformingTouchDelegate(mIconView);
     }
 
@@ -411,6 +417,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         cancelPendingLoadTasks();
         mTask = task;
         mSnapshotView.bind(task);
+        mTaskName.setText(TaskUtils.getTitle(getContext(), task));
         setOrientationState(orientedState);
     }
 
@@ -589,35 +596,59 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
     public void setOrientationState(RecentsOrientedState orientationState) {
         PagedOrientationHandler orientationHandler = orientationState.getOrientationHandler();
         boolean isRtl = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
-        LayoutParams snapshotParams = (LayoutParams) mSnapshotView.getLayoutParams();
-        int thumbnailPadding = (int) getResources().getDimension(R.dimen.task_thumbnail_top_margin);
+        
         LayoutParams iconParams = (LayoutParams) mIconView.getLayoutParams();
-        switch (orientationHandler.getRotation()) {
-            case ROTATION_90:
-                iconParams.gravity = (isRtl ? START : END) | CENTER_VERTICAL;
-                iconParams.rightMargin = -thumbnailPadding;
-                iconParams.leftMargin = 0;
-                iconParams.topMargin = snapshotParams.topMargin / 2;
-                break;
-            case ROTATION_180:
-                iconParams.gravity = BOTTOM | CENTER_HORIZONTAL;
-                iconParams.bottomMargin = -thumbnailPadding;
-                iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = 0;
-                break;
-            case ROTATION_270:
-                iconParams.gravity = (isRtl ? END : START) | CENTER_VERTICAL;
-                iconParams.leftMargin = -thumbnailPadding;
-                iconParams.rightMargin = 0;
-                iconParams.topMargin = snapshotParams.topMargin / 2;
-                break;
-            case Surface.ROTATION_0:
-            default:
-                iconParams.gravity = TOP | CENTER_HORIZONTAL;
-                iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = 0;
-                break;
+        LayoutParams textParams = (LayoutParams) mTaskName.getLayoutParams();
+        LayoutParams snapshotParams = (LayoutParams) mSnapshotView.getLayoutParams();
+        
+        int thumbnailPadding = (int) getResources().getDimension(R.dimen.task_thumbnail_top_margin);
+        int iconSize = (int) getResources().getDimension(R.dimen.task_thumbnail_icon_size);
+        int rotation = orientationHandler.getRotation();
+
+        iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = iconParams.bottomMargin = 0;
+        textParams.leftMargin = textParams.topMargin = textParams.rightMargin = textParams.bottomMargin = 0;
+
+        if (rotation == Surface.ROTATION_0) {
+            mTaskName.setVisibility(VISIBLE);
+
+            int fixedPadding = (int) (12 * getResources().getDisplayMetrics().density);
+
+            iconParams.gravity = TOP | START;
+            iconParams.leftMargin = fixedPadding;
+            iconParams.topMargin = fixedPadding;
+            
+            textParams.gravity = TOP | START;
+            textParams.leftMargin = fixedPadding + iconSize + fixedPadding;
+            textParams.topMargin = fixedPadding;
+            
+            mIconView.setRotation(0);
+        } else {
+            mTaskName.setVisibility(GONE);
+
+            switch (rotation) {
+                case ROTATION_90:
+                    iconParams.gravity = (isRtl ? START : END) | CENTER_VERTICAL;
+                    iconParams.rightMargin = -thumbnailPadding;
+                    iconParams.leftMargin = 0;
+                    iconParams.topMargin = snapshotParams.topMargin / 2;
+                    break;
+                case ROTATION_180:
+                    iconParams.gravity = BOTTOM | CENTER_HORIZONTAL;
+                    iconParams.bottomMargin = -thumbnailPadding;
+                    iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = 0;
+                    break;
+                case ROTATION_270:
+                    iconParams.gravity = (isRtl ? END : START) | CENTER_VERTICAL;
+                    iconParams.leftMargin = -thumbnailPadding;
+                    iconParams.rightMargin = 0;
+                    iconParams.topMargin = snapshotParams.topMargin / 2;
+                    break;
+            }
+            mIconView.setRotation(orientationHandler.getDegreesRotated());
         }
+
         mIconView.setLayoutParams(iconParams);
-        mIconView.setRotation(orientationHandler.getDegreesRotated());
+        mTaskName.setLayoutParams(textParams);
 
         if (mMenuView != null) {
             mMenuView.onRotationChanged();
@@ -635,8 +666,11 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         float upperClamp = invert ? 1 : iconScalePercentage;
         float scale = Interpolators.clampToProgress(FAST_OUT_SLOW_IN, lowerClamp, upperClamp)
                 .getInterpolation(progress);
+        
         mIconView.setScaleX(scale);
         mIconView.setScaleY(scale);
+        mTaskName.setAlpha(scale);
+
         if (mContextualChip != null && mContextualChipWrapper != null) {
             mContextualChipWrapper.setAlpha(scale);
             mContextualChip.setScaleX(scale);
@@ -1122,17 +1156,21 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         progress = Utilities.boundToRange(progress, 0, 1);
         mFullscreenProgress = progress;
         boolean isFullscreen = mFullscreenProgress > 0;
-        mIconView.setVisibility(progress < 1 ? VISIBLE : INVISIBLE);
+        boolean isPortrait = getRecentsView().getPagedOrientationHandler().getRotation() == Surface.ROTATION_0;
+
+        int iconVisibility = progress < 1 ? VISIBLE : INVISIBLE;
+        int textVisibility = (progress < 1 && isPortrait) ? VISIBLE : (progress >= 1 ? INVISIBLE : GONE);
+
+        mIconView.setVisibility(iconVisibility);
+        mTaskName.setVisibility(textVisibility);
+
         setClipChildren(!isFullscreen);
         setClipToPadding(!isFullscreen);
-
         TaskThumbnailView thumbnail = getThumbnail();
         updateCurrentFullscreenParams(thumbnail.getPreviewPositionHelper());
 
         if (!getRecentsView().isTaskIconScaledDown(this)) {
-            // Some of the items in here are dependent on the current fullscreen params, but don't
-            // update them if the icon is supposed to be scaled down.
-            setIconScaleAndDim(progress, true /* invert */);
+            setIconScaleAndDim(progress, true);
         }
 
         thumbnail.setFullscreenParams(mCurrentFullscreenParams);
