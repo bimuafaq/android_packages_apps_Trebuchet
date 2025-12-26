@@ -26,6 +26,7 @@
 
     <com.android.quickstep.views.IconView
       android:id="@+id/task_icon"
+      android:visibility="gone"
       android:layout_width="@dimen/task_thumbnail_icon_size"
       android:layout_height="@dimen/task_thumbnail_icon_size"
       android:layout_gravity="top|center_horizontal"
@@ -35,6 +36,7 @@
 
     <TextView
         android:id="@+id/task_name"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
@@ -44,11 +46,11 @@
     <LinearLayout
         android:id="@+id/menu_option_layout"
         style="@style/TaskMenu"
-        android:divider="@drawable/all_apps_divider"
-        android:showDividers="beginning"
         android:paddingStart="@dimen/task_card_menu_horizontal_padding"
         android:paddingEnd="@dimen/task_card_menu_horizontal_padding"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
 
 </com.android.quickstep.views.TaskMenuView>
