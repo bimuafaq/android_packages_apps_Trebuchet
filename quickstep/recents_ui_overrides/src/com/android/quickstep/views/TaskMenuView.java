@@ -232,8 +232,11 @@ public class TaskMenuView extends AbstractFloatingView {
                 R.layout.task_view_menu_option, this, false);
         menuOption.setIconAndLabelFor(
                 menuOptionView.findViewById(R.id.icon), menuOptionView.findViewById(R.id.text));
+        
         LayoutParams lp = (LayoutParams) menuOptionView.getLayoutParams();
-        mTaskView.getPagedOrientationHandler().setLayoutParamsForTaskMenuOptionItem(lp);
+        lp.width = LayoutParams.MATCH_PARENT;
+        lp.height = LayoutParams.WRAP_CONTENT;
+        
         menuOptionView.setOnClickListener(menuOption);
         mOptionLayout.addView(menuOptionView);
     }
@@ -250,10 +253,9 @@ public class TaskMenuView extends AbstractFloatingView {
         setLayoutParams(params);
         setScaleX(taskView.getScaleX());
         setScaleY(taskView.getScaleY());
-        boolean canActivityRotate = taskView.getRecentsView()
-            .mOrientationState.isRecentsActivityRotationAllowed();
-        mOptionLayout.setOrientation(orientationHandler
-                .getTaskMenuLayoutOrientation(canActivityRotate, mOptionLayout));
+        
+        mOptionLayout.setOrientation(LinearLayout.VERTICAL);
+        
         setPosition(sTempRect.left - insets.left, sTempRect.top - insets.top,
             taskView.getPagedOrientationHandler());
     }
