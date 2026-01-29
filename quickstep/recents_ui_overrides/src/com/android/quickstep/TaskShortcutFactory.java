@@ -25,13 +25,18 @@ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCH
 import static com.android.launcher3.userevent.nano.LauncherLogProto.Action.Touch.TAP;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Toast;
 
 import com.android.launcher3.BaseDraggingActivity;
 import com.android.launcher3.DeviceProfile;
@@ -299,6 +304,38 @@ public interface TaskShortcutFactory {
             dismissTaskMenuView(mTarget);
             mTarget.getStatsLogManager().logger().withItemInfo(mTaskView.getItemInfo())
                     .log(LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_PIN_TAP);
+        }
+    }
+
+    TaskShortcutFactory FORCE_STOP = (activity, view) -> new ForceStopSystemShortcut(activity, view);
+
+    class ForceStopSystemShortcut extends SystemShortcut {
+
+        private final TaskView mTaskView;
+
+        public ForceStopSystemShortcut(BaseDraggingActivity target, TaskView tv) {
+            super(R.drawable.ic_block_no_shadow, R.string.recent_task_option_force_stop, target, tv.getItemInfo());
+            mTaskView = tv;
+        }
+
+        @Override
+        public void onClick(View view) {
+            new AlertDialog.Builder(mTarget)
+                    .setTitle(R.string.force_stop_dlg_title)
+                    .setMessage(R.string.force_stop_dlg_text)
+                    .setPositiveButton(R.string.recent_task_option_force_stop, (dialog, which) -> {
+                        ActivityManager am = (ActivityManager) mTarget.getSystemService(Context.ACTIVITY_SERVICE);
+                        if (am != null) {
+                            try {
+                                am.forceStopPackage(mTaskView.getTask().getTopComponent().getPackageName());
+                            } catch (SecurityException e) {
+                                Toast.makeText(mTarget, R.string.msg_disabled_by_admin, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            dismissTaskMenuView(mTarget);
         }
     }
 
