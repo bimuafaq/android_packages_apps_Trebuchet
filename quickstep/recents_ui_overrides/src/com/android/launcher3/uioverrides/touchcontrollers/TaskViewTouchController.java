@@ -42,6 +42,7 @@ import com.android.launcher3.util.FlingBlockCheck;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.quickstep.SysUINavigationMode;
+import com.android.quickstep.util.TaskLockState;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
 
@@ -153,15 +154,20 @@ public abstract class TaskViewTouchController<T extends BaseDraggingActivity>
                             break;
                         }
                         mTaskBeingDragged = view;
+                        boolean isLocked = TaskLockState.getInstance(mActivity).isTaskLocked(view.getTask());
                         if (!SysUINavigationMode.getMode(mActivity).hasGestures) {
                             // Don't allow swipe down to open if we don't support swipe up
                             // to enter overview.
-                            directionsToDetectScroll = DIRECTION_POSITIVE;
+                            directionsToDetectScroll = isLocked ? 0 : DIRECTION_POSITIVE;
                         } else {
                             // The task can be dragged up to dismiss it,
                             // and down to open if it's the current page.
-                            directionsToDetectScroll = i == mRecentsView.getCurrentPage()
-                                    ? DIRECTION_BOTH : DIRECTION_POSITIVE;
+                            if (isLocked) {
+                                directionsToDetectScroll = DIRECTION_NEGATIVE;
+                            } else {
+                                directionsToDetectScroll = i == mRecentsView.getCurrentPage()
+                                        ? DIRECTION_BOTH : DIRECTION_POSITIVE;
+                            }
                         }
                         break;
                     }

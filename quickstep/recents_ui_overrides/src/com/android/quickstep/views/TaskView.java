@@ -66,6 +66,7 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -96,6 +97,7 @@ import com.android.quickstep.TaskThumbnailCache;
 import com.android.quickstep.TaskUtils;
 import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.util.TaskCornerRadius;
+import com.android.quickstep.util.TaskLockState;
 import com.android.quickstep.views.RecentsView.PageCallbacks;
 import com.android.quickstep.views.RecentsView.ScrollState;
 import com.android.quickstep.views.TaskThumbnailView.PreviewPositionHelper;
@@ -231,6 +233,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
     private TaskMenuView mMenuView;
     private TextView mTaskName;
     private IconView mIconView;
+    private ImageView mLockIcon;
     private final DigitalWellBeingToast mDigitalWellBeingToast;
     private float mCurveScale;
     private float mFullscreenProgress;
@@ -326,6 +329,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         super.onFinishInflate();
         mSnapshotView = findViewById(R.id.snapshot);
         mIconView = findViewById(R.id.icon);
+        mLockIcon = findViewById(R.id.lock_icon);
         mTaskName = findViewById(R.id.task_name);
         mIconTouchDelegate = new TransformingTouchDelegate(mIconView);
     }
@@ -418,7 +422,14 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         mTask = task;
         mSnapshotView.bind(task);
         mTaskName.setText(TaskUtils.getTitle(getContext(), task));
+        updateLockIconVisibility();
         setOrientationState(orientedState);
+    }
+
+    public void updateLockIconVisibility() {
+        boolean isLocked = TaskLockState.getInstance(getContext()).isTaskLocked(mTask);
+        mLockIcon.setVisibility((isLocked && mFullscreenProgress < 1) ? VISIBLE : GONE);
+        mLockIcon.setAlpha(mIconView.getScaleX());
     }
 
     public Task getTask() {
@@ -600,6 +611,7 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         LayoutParams iconParams = (LayoutParams) mIconView.getLayoutParams();
         LayoutParams textParams = (LayoutParams) mTaskName.getLayoutParams();
         LayoutParams snapshotParams = (LayoutParams) mSnapshotView.getLayoutParams();
+        LayoutParams lockParams = (LayoutParams) mLockIcon.getLayoutParams();
         
         int thumbnailPadding = (int) getResources().getDimension(R.dimen.task_thumbnail_top_margin);
         int iconSize = (int) getResources().getDimension(R.dimen.task_thumbnail_icon_size);
@@ -607,11 +619,14 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
 
         iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = iconParams.bottomMargin = 0;
         textParams.leftMargin = textParams.topMargin = textParams.rightMargin = textParams.bottomMargin = 0;
+        lockParams.leftMargin = lockParams.topMargin = lockParams.rightMargin = lockParams.bottomMargin = 0;
 
         if (rotation == Surface.ROTATION_0) {
             mTaskName.setVisibility(VISIBLE);
 
             int fixedPadding = (int) (12 * getResources().getDisplayMetrics().density);
+            // Vertically center lock icon (24dp) in the task name header (38dp)
+            int verticalCenterOffset = (int) (7 * getResources().getDisplayMetrics().density);
 
             iconParams.gravity = TOP | START;
             iconParams.leftMargin = fixedPadding;
@@ -621,7 +636,12 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
             textParams.leftMargin = fixedPadding + iconSize + fixedPadding;
             textParams.topMargin = fixedPadding;
             
+            lockParams.gravity = TOP | END;
+            lockParams.rightMargin = fixedPadding;
+            lockParams.topMargin = fixedPadding + verticalCenterOffset;
+            
             mIconView.setRotation(0);
+            mLockIcon.setRotation(0);
         } else {
             mTaskName.setVisibility(GONE);
 
@@ -631,24 +651,40 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
                     iconParams.rightMargin = -thumbnailPadding;
                     iconParams.leftMargin = 0;
                     iconParams.topMargin = snapshotParams.topMargin / 2;
+
+                    lockParams.gravity = (isRtl ? END : START) | CENTER_VERTICAL;
+                    lockParams.leftMargin = -thumbnailPadding;
+                    lockParams.rightMargin = 0;
+                    lockParams.topMargin = snapshotParams.topMargin / 2;
                     break;
                 case ROTATION_180:
                     iconParams.gravity = BOTTOM | CENTER_HORIZONTAL;
                     iconParams.bottomMargin = -thumbnailPadding;
                     iconParams.leftMargin = iconParams.topMargin = iconParams.rightMargin = 0;
+
+                    lockParams.gravity = TOP | CENTER_HORIZONTAL;
+                    lockParams.topMargin = -thumbnailPadding;
+                    lockParams.leftMargin = lockParams.bottomMargin = lockParams.rightMargin = 0;
                     break;
                 case ROTATION_270:
                     iconParams.gravity = (isRtl ? END : START) | CENTER_VERTICAL;
                     iconParams.leftMargin = -thumbnailPadding;
                     iconParams.rightMargin = 0;
                     iconParams.topMargin = snapshotParams.topMargin / 2;
+
+                    lockParams.gravity = (isRtl ? START : END) | CENTER_VERTICAL;
+                    lockParams.rightMargin = -thumbnailPadding;
+                    lockParams.leftMargin = 0;
+                    lockParams.topMargin = snapshotParams.topMargin / 2;
                     break;
             }
             mIconView.setRotation(orientationHandler.getDegreesRotated());
+            mLockIcon.setRotation(orientationHandler.getDegreesRotated());
         }
 
         mIconView.setLayoutParams(iconParams);
         mTaskName.setLayoutParams(textParams);
+        mLockIcon.setLayoutParams(lockParams);
 
         if (mMenuView != null) {
             mMenuView.onRotationChanged();
@@ -667,9 +703,9 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
         float scale = Interpolators.clampToProgress(FAST_OUT_SLOW_IN, lowerClamp, upperClamp)
                 .getInterpolation(progress);
         
-        mIconView.setScaleX(scale);
-        mIconView.setScaleY(scale);
+        mIconView.setAlpha(scale);
         mTaskName.setAlpha(scale);
+        mLockIcon.setAlpha(scale);
 
         if (mContextualChip != null && mContextualChipWrapper != null) {
             mContextualChipWrapper.setAlpha(scale);
@@ -1163,6 +1199,8 @@ public class TaskView extends FrameLayout implements PageCallbacks, Reusable {
 
         mIconView.setVisibility(iconVisibility);
         mTaskName.setVisibility(textVisibility);
+        boolean isLocked = TaskLockState.getInstance(getContext()).isTaskLocked(mTask);
+        mLockIcon.setVisibility((iconVisibility == VISIBLE && isLocked) ? VISIBLE : GONE);
 
         setClipChildren(!isFullscreen);
         setClipToPadding(!isFullscreen);

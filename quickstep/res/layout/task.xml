@@ -50,4 +50,15 @@
         android:shadowRadius="2"
         android:importantForAccessibility="no"/>
 
+    <ImageView
+        android:id="@+id/lock_icon"
+        android:layout_width="@dimen/system_shortcut_icon_size"
+        android:layout_height="@dimen/system_shortcut_icon_size"
+        android:layout_gravity="top|end"
+        android:padding="4dp"
+        android:src="@drawable/ic_protected_locked"
+        android:visibility="gone"
+        android:importantForAccessibility="no"
+        android:elevation="10dp"/>
+
 </com.android.quickstep.views.TaskView>
