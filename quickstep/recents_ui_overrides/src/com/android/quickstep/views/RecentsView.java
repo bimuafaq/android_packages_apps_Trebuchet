@@ -133,6 +133,7 @@ import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.RecentsOrientedState;
 import com.android.quickstep.util.SplitScreenBounds;
 import com.android.quickstep.util.SurfaceTransactionApplier;
+import com.android.quickstep.util.TaskLockState;
 import com.android.quickstep.util.TransformParams;
 import com.android.systemui.plugins.ResourceProvider;
 import com.android.systemui.shared.recents.IPinnedStackAnimationListener;
@@ -1540,16 +1541,30 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
 
         int count = getTaskViewCount();
         for (int i = 0; i < count; i++) {
-            addDismissedTaskAnimations(getTaskViewAt(i), duration, anim);
+            TaskView tv = getTaskViewAt(i);
+            if (!TaskLockState.getInstance(getContext()).isTaskLocked(tv.getTask())) {
+                addDismissedTaskAnimations(tv, duration, anim);
+            }
         }
 
         mPendingAnimation = anim;
         mPendingAnimation.addEndListener((endState) -> {
             if (endState.isSuccess) {
-                // Remove all the task views now
-                ActivityManagerWrapper.getInstance().removeAllRecentTasks();
-                removeTasksViewsAndClearAllButton();
-                startHome();
+                // Remove unlocked task views
+                for (int i = getTaskViewCount() - 1; i >= 0; i--) {
+                    TaskView tv = getTaskViewAt(i);
+                    if (!TaskLockState.getInstance(getContext()).isTaskLocked(tv.getTask())) {
+                        removeTask(tv, i, endState);
+                        removeView(tv);
+                    }
+                }
+
+                if (getTaskViewCount() == 0) {
+                    startHome();
+                } else {
+                    snapToPageImmediately(0);
+                }
+
                 if (mActionsView != null) {
                     mActionsView.updateMemInfo();
                 }
@@ -1581,6 +1596,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
     }
 
     public void dismissTask(TaskView taskView, boolean animateTaskView, boolean removeTask) {
+        if (TaskLockState.getInstance(getContext()).isTaskLocked(taskView.getTask())) {
+            return;
+        }
         runDismissAnimation(createTaskDismissAnimation(taskView, animateTaskView, removeTask,
                 DISMISS_TASK_DURATION));
     }

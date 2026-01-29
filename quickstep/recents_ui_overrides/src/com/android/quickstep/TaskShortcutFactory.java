@@ -48,6 +48,7 @@ import com.android.launcher3.popup.SystemShortcut.AppInfo;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.InstantAppResolver;
+import com.android.quickstep.util.TaskLockState;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskThumbnailView;
 import com.android.quickstep.views.TaskView;
@@ -304,6 +305,32 @@ public interface TaskShortcutFactory {
             dismissTaskMenuView(mTarget);
             mTarget.getStatsLogManager().logger().withItemInfo(mTaskView.getItemInfo())
                     .log(LauncherEvent.LAUNCHER_SYSTEM_SHORTCUT_PIN_TAP);
+        }
+    }
+
+    TaskShortcutFactory LOCK = (activity, view) -> {
+        boolean isLocked = TaskLockState.getInstance(activity).isTaskLocked(view.getTask());
+        return new LockSystemShortcut(activity, view, isLocked);
+    };
+
+    class LockSystemShortcut extends SystemShortcut {
+
+        private final TaskView mTaskView;
+        private final boolean mIsLocked;
+
+        public LockSystemShortcut(BaseDraggingActivity target, TaskView tv, boolean isLocked) {
+            super(isLocked ? R.drawable.ic_protected_unlocked : R.drawable.ic_protected_locked,
+                    isLocked ? R.string.recent_task_option_unlock : R.string.recent_task_option_lock,
+                    target, tv.getItemInfo());
+            mTaskView = tv;
+            mIsLocked = isLocked;
+        }
+
+        @Override
+        public void onClick(View view) {
+            TaskLockState.getInstance(mTarget).setTaskLocked(mTaskView.getTask(), !mIsLocked);
+            mTaskView.updateLockIconVisibility();
+            dismissTaskMenuView(mTarget);
         }
     }
 
