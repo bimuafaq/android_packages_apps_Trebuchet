@@ -27,7 +27,9 @@ import static com.android.launcher3.userevent.nano.LauncherLogProto.Action.Touch
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -318,15 +320,22 @@ public interface TaskShortcutFactory {
 
         @Override
         public void onClick(View view) {
+            new AlertDialog.Builder(mTarget)
+                    .setTitle(R.string.force_stop_dlg_title)
+                    .setMessage(R.string.force_stop_dlg_text)
+                    .setPositiveButton(R.string.recent_task_option_force_stop, (dialog, which) -> {
+                        ActivityManager am = (ActivityManager) mTarget.getSystemService(Context.ACTIVITY_SERVICE);
+                        if (am != null) {
+                            try {
+                                am.forceStopPackage(mTaskView.getTask().getTopComponent().getPackageName());
+                            } catch (SecurityException e) {
+                                Toast.makeText(mTarget, R.string.msg_disabled_by_admin, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
             dismissTaskMenuView(mTarget);
-            ActivityManager am = (ActivityManager) mTarget.getSystemService(Context.ACTIVITY_SERVICE);
-            if (am != null) {
-                try {
-                    am.forceStopPackage(mTaskView.getTask().getTopComponent().getPackageName());
-                } catch (SecurityException e) {
-                    Toast.makeText(mTarget, R.string.msg_disabled_by_admin, Toast.LENGTH_SHORT).show();
-                }
-            }
         }
     }
 
