@@ -398,14 +398,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
     private int mIgnoreResetTaskId = -1;
 
     // Variables for empty state
-    private final Drawable mEmptyIcon;
-    private final CharSequence mEmptyMessage;
-    private final TextPaint mEmptyMessagePaint;
-    private final Point mLastMeasureSize = new Point();
-    private final int mEmptyMessagePadding;
+    private View mEmptyView;
     private boolean mShowEmptyMessage;
     private OnEmptyMessageUpdatedListener mOnEmptyMessageUpdatedListener;
-    private Layout mEmptyTextLayout;
     private boolean mLiveTileOverlayAttached;
 
     // Keeps track of the index where the first TaskView should be
@@ -451,17 +446,6 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
                 .getDimensionPixelSize(R.dimen.task_thumbnail_top_margin);
         mSquaredTouchSlop = squaredTouchSlop(context);
 
-        mEmptyIcon = context.getDrawable(R.drawable.ic_empty_recents);
-        mEmptyIcon.setCallback(this);
-        mEmptyMessage = context.getText(R.string.recents_empty_message);
-        mEmptyMessagePaint = new TextPaint();
-        mEmptyMessagePaint.setColor(Themes.getAttrColor(context, android.R.attr.textColorPrimary));
-        mEmptyMessagePaint.setTextSize(getResources()
-                .getDimension(R.dimen.recents_empty_message_text_size));
-        mEmptyMessagePaint.setTypeface(Typeface.create(Themes.getDefaultBodyFont(context),
-                Typeface.NORMAL));
-        mEmptyMessagePadding = getResources()
-                .getDimensionPixelSize(R.dimen.recents_empty_message_text_padding);
         setWillNotDraw(false);
         updateEmptyMessage();
         mOrientationHandler = mOrientationState.getOrientationHandler();
@@ -552,6 +536,13 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
         mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, false);
         mClearAllButton = (Button) mActionsView.findViewById(R.id.clear_all);
         mClearAllButton.setOnClickListener(this::dismissAllTasks);
+        mEmptyView = ((ViewGroup) getParent()).findViewById(R.id.empty_recents_text);
+    }
+
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        updateEmptyStateUi(false);
     }
 
     @Override
@@ -1686,8 +1677,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
             }
         }
         int alphaInt = Math.round(alpha * 255);
-        mEmptyMessagePaint.setAlpha(alphaInt);
-        mEmptyIcon.setAlpha(alphaInt);
+        if (mEmptyView != null) {
+            mEmptyView.setAlpha(alpha);
+        }
         mActionsView.getContentAlpha().setValue(mContentAlpha);
 
         if (alpha > 0) {
@@ -1810,14 +1802,16 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
 
     public void updateEmptyMessage() {
         boolean isEmpty = getTaskViewCount() == 0;
-        boolean hasSizeChanged = mLastMeasureSize.x != getWidth()
-                || mLastMeasureSize.y != getHeight();
-        if (isEmpty == mShowEmptyMessage && !hasSizeChanged) {
+        if (isEmpty == mShowEmptyMessage) {
             return;
         }
-        setContentDescription(isEmpty ? mEmptyMessage : "");
+        if (isEmpty) {
+            setContentDescription(getContext().getText(R.string.recents_empty_message));
+        } else {
+            setContentDescription("");
+        }
         mShowEmptyMessage = isEmpty;
-        updateEmptyStateUi(hasSizeChanged);
+        updateEmptyStateUi(false);
         invalidate();
 
         if (mOnEmptyMessageUpdatedListener != null) {
@@ -1982,47 +1976,21 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
     }
 
     private void updateEmptyStateUi(boolean sizeChanged) {
-        boolean hasValidSize = getWidth() > 0 && getHeight() > 0;
-        if (sizeChanged && hasValidSize) {
-            mEmptyTextLayout = null;
-            mLastMeasureSize.set(getWidth(), getHeight());
-        }
-
-        if (mShowEmptyMessage && hasValidSize && mEmptyTextLayout == null) {
-            int availableWidth = mLastMeasureSize.x - mEmptyMessagePadding - mEmptyMessagePadding;
-            mEmptyTextLayout = StaticLayout.Builder.obtain(mEmptyMessage, 0, mEmptyMessage.length(),
-                    mEmptyMessagePaint, availableWidth)
-                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                    .build();
-            int totalHeight = mEmptyTextLayout.getHeight()
-                    + mEmptyMessagePadding + mEmptyIcon.getIntrinsicHeight();
-
-            int top = (mLastMeasureSize.y - totalHeight) / 2;
-            int left = (mLastMeasureSize.x - mEmptyIcon.getIntrinsicWidth()) / 2;
-            mEmptyIcon.setBounds(left, top, left + mEmptyIcon.getIntrinsicWidth(),
-                    top + mEmptyIcon.getIntrinsicHeight());
+        if (mEmptyView != null) {
+            boolean visible = mShowEmptyMessage && getVisibility() == VISIBLE;
+            mEmptyView.setVisibility(visible ? VISIBLE : GONE);
+            if (visible) {
+                mEmptyView.bringToFront();
+            }
         }
     }
 
     @Override
     protected boolean verifyDrawable(Drawable who) {
-        return super.verifyDrawable(who) || (mShowEmptyMessage && who == mEmptyIcon);
+        return super.verifyDrawable(who);
     }
 
     protected void maybeDrawEmptyMessage(Canvas canvas) {
-        if (mShowEmptyMessage && mEmptyTextLayout != null) {
-            // Offset to center in the visible (non-padded) part of RecentsView
-            mTempRect.set(mInsets.left + getPaddingLeft(), mInsets.top + getPaddingTop(),
-                    mInsets.right + getPaddingRight(), mInsets.bottom + getPaddingBottom());
-            canvas.save();
-            canvas.translate(getScrollX() + (mTempRect.left - mTempRect.right) / 2,
-                    (mTempRect.top - mTempRect.bottom) / 2);
-            mEmptyIcon.draw(canvas);
-            canvas.translate(mEmptyMessagePadding,
-                    mEmptyIcon.getBounds().bottom + mEmptyMessagePadding);
-            mEmptyTextLayout.draw(canvas);
-            canvas.restore();
-        }
     }
 
     /**

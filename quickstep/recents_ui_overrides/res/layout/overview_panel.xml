@@ -25,6 +25,22 @@
         android:theme="@style/HomeScreenElementTheme"
         android:visibility="invisible" />
 
+    <TextView
+        android:id="@+id/empty_recents_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/recents_empty_message"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/recents_empty_message_text_size"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone"
+        android:elevation="100dp"
+        android:shadowColor="#FF000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="4" />
+
     <include
         android:id="@+id/overview_actions_view"
         layout="@layout/overview_actions_container" />
