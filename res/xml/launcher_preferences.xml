@@ -74,6 +74,13 @@
         android:defaultValue="true"
         android:persistent="true" />
 
+    <SeekBarPreference
+        android:key="pref_overview_scrim_opacity"
+        android:title="@string/show_overview_scrim_title"
+        android:defaultValue="50"
+        android:max="100"
+        android:persistent="true" />
+
     <Preference
         android:key="pref_trust_apps"
         android:title="@string/trust_apps_manager_name" />
@@ -105,4 +112,5 @@
         android:title="@string/show_labels_landscape"
         android:defaultValue="false"
         android:persistent="true" />
+
 </androidx.preference.PreferenceScreen>
