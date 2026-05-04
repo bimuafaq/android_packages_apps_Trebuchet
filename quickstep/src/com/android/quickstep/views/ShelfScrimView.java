@@ -225,9 +225,14 @@ public class ShelfScrimView extends ScrimView<BaseQuickstepLauncher>
         } else if (mProgress >= mMidProgress) {
             mRemainingScreenColor = 0;
 
-            int alpha = Math.round(Utilities.mapToRange(
-                    mProgress, mMidProgress, 1, mMidAlpha, 0, mBeforeMidProgressColorInterpolator));
-            mShelfColor = setColorAlphaBound(mEndScrim, alpha);
+            if (mMidProgress >= 1f) {
+                mShelfColor = setColorAlphaBound(mEndScrim, 0);
+            } else {
+                int alpha = Math.round(Utilities.mapToRange(
+                        mProgress, mMidProgress, 1, mMidAlpha, 0,
+                        mBeforeMidProgressColorInterpolator));
+                mShelfColor = setColorAlphaBound(mEndScrim, alpha);
+            }
         } else {
             // Note that these ranges and interpolators are inverted because progress goes 1 to 0.
             int alpha = Math.round(

@@ -183,9 +183,13 @@ public class AllAppsEduView extends AbstractFloatingView {
                 mGradient.setBounds(temp);
                 invalidate();
 
-                float stateProgress = Utilities.mapToRange(mDeltaY.value, 0, transY, 0,
-                        maxAllAppsProgress, LINEAR);
-                stateAnimationController.setPlayFraction(stateProgress);
+                if (transY <= 0) {
+                    stateAnimationController.setPlayFraction(1f);
+                } else {
+                    float stateProgress = Utilities.mapToRange(mDeltaY.value, 0, transY, 0,
+                            maxAllAppsProgress, LINEAR);
+                    stateAnimationController.setPlayFraction(stateProgress);
+                }
             }
         }));
         intro.addListener(new AnimatorListenerAdapter() {
