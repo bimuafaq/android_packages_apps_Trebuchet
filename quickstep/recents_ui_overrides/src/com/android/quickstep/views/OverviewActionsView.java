@@ -229,13 +229,4 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         params.setMargins(
                 params.leftMargin, params.topMargin, params.rightMargin, bottomMargin);
     }
-    
-    @Override
-    public void setAlpha(float alpha) {
-        if (alpha > 0f) {
-            super.setAlpha(1.0f);
-        } else {
-            super.setAlpha(0f);
-        }
-    }
 }

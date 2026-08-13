@@ -861,9 +861,9 @@ public abstract class RecentsView<T extends StatefulActivity> extends PagedView 
         for (int i = 0; i < taskCount; i++) {
             getTaskViewAt(i).setFullscreenProgress(mFullscreenProgress);
         }
-        // Fade out the actions view quickly (0.1 range)
-        mActionsView.getFullscreenAlpha().setValue(
-                mapToRange(fullscreenProgress, 0, 0.1f, 1f, 0f, LINEAR));
+        // Snap (don't fade) the actions alpha so the bar does not flicker/blink while
+        // swiping tasks. The overview<->home fade stays smooth via visibilityAlpha/contentAlpha.
+        mActionsView.getFullscreenAlpha().setValue(fullscreenProgress > 0f ? 0f : 1f);
     }
 
     private void updateTaskStackListenerState() {
