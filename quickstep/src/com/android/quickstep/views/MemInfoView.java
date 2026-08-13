@@ -60,7 +60,11 @@ public class MemInfoView extends TextView {
 
     public void updateMemInfo() {
         if (!Utilities.isShowMemInfo(getContext())) {
-            mHandler.removeCallbacks(mWorker);
+            if (mWorkerHandler != null) {
+                mWorkerHandler.removeCallbacks(mWorker);
+            } else {
+                mHandler.removeCallbacks(mWorker);
+            }
             setVisibility(GONE);
             return;
         }
@@ -69,7 +73,7 @@ public class MemInfoView extends TextView {
             setVisibility(VISIBLE);
         }
 
-        mHandler.post(mWorker);
+        mWorkerHandler.post(mWorker);
     }
 
     @Override
