@@ -171,5 +171,4 @@
     <string name="blocked_by_policy">This action isn\'t allowed by the app or your organization</string>
 
     <string name="meminfo_text">%1$s Available | %2$s</string>
-    <string name="recents_close_all">Close all</string>
 </resources>

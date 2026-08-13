@@ -20,14 +20,15 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.HandlerThread;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 
-import java.lang.Runnable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class MemInfoView extends TextView {
 
@@ -37,6 +38,8 @@ public class MemInfoView extends TextView {
 
     private ActivityManager mActivityManager;
     private Handler mHandler;
+    private HandlerThread mWorkerThread;
+    private Handler mWorkerHandler;
     private MemInfoWorker mWorker;
     private String mMemInfoText;
 
@@ -45,14 +48,13 @@ public class MemInfoView extends TextView {
 
         mActivityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         mHandler = new Handler(Looper.getMainLooper());
+        mWorkerThread = new HandlerThread("MemInfoWorker");
+        mWorkerThread.start();
+        mWorkerHandler = new Handler(mWorkerThread.getLooper());
         mWorker = new MemInfoWorker();
 
-        try {
-            mMemInfoText = context.getResources().getString(R.string.meminfo_text);
-        } catch (Exception e) {
-            mMemInfoText = "%1$s Available | %2$s Total";
-        }
-        
+        mMemInfoText = context.getResources().getString(R.string.meminfo_text);
+
         updateMemInfo();
     }
 
@@ -74,16 +76,24 @@ public class MemInfoView extends TextView {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mHandler.removeCallbacks(mWorker);
+        if (mWorkerHandler != null) {
+            mWorkerHandler.removeCallbacksAndMessages(null);
+        }
+        if (mWorkerThread != null) {
+            mWorkerThread.quitSafely();
+            mWorkerThread = null;
+            mWorkerHandler = null;
+        }
     }
 
     private String unitConvert(long valueMiB, boolean alignToGB) {
         BigDecimal rawVal = new BigDecimal(valueMiB);
 
         if (alignToGB)
-            return rawVal.divide(GB2MB, 0, BigDecimal.ROUND_UP) + " GB";
+            return rawVal.divide(GB2MB, 1, RoundingMode.HALF_UP) + " GB";
 
         if (valueMiB > UNIT_CONVERT_THRESHOLD)
-            return rawVal.divide(GB2MB, 1, BigDecimal.ROUND_HALF_UP) + " GB";
+            return rawVal.divide(GB2MB, 1, RoundingMode.HALF_UP) + " GB";
         else
             return rawVal + " MB";
     }
@@ -105,7 +115,10 @@ public class MemInfoView extends TextView {
             mActivityManager.getMemoryInfo(memInfo);
             long availMemMiB = memInfo.availMem / (1024 * 1024);
             long totalMemMiB = memInfo.totalMem / (1024 * 1024);
-            updateMemInfoText(availMemMiB, totalMemMiB);
+            // Post the UI update back to the main thread.
+            final long avail = availMemMiB;
+            final long total = totalMemMiB;
+            mHandler.post(() -> updateMemInfoText(avail, total));
         }
     }
 }
